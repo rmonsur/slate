@@ -1,14 +1,10 @@
 ---
-title: API Reference
+title: Piecewise API Reference
 
 language_tabs: # must be one of https://git.io/vQNgJ
-  - shell
-  - ruby
-  - python
-  - javascript
+  - API Response
 
 toc_footers:
-  - <a href='#'>Sign Up for a Developer Key</a>
   - <a href='https://github.com/tripit/slate'>Documentation Powered by Slate</a>
 
 includes:
@@ -17,223 +13,234 @@ includes:
 search: true
 ---
 
-# Introduction
+# Piecewise API: Introduction
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+This is Piecewise API. The API is used to consume, store and send data about a user's login credentials, personal information, loan and loan payments information. 
 
-We have language bindings in Shell, Ruby, and Python! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
+The API is divided into 3 parts as of now:
 
-This example API documentation page was created with [Slate](https://github.com/tripit/slate). Feel free to edit it and use it as a base for your own API's documentation.
+Users at /user/ endpoint
 
-# Authentication
+This is where we create, validate, verify, authenticate new and existing users and retrieve user related information. 
 
-> To authorize, use this code:
+Payments at /payments/ endpoint
 
-```ruby
-require 'kittn'
+This is where we send all payment requests to GreatLakes Loan Provider. 
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
+Loans at /loans/ endpoint
+
+This is where we retrieve loan provider login credentials as well as loan balance information of a user. 
+
+
+# Users
+## Creating new users
+This is when a new user signs up for Piecewise. 
+
 ```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
+On success:
+({
+  status: 200
+  success: true,
+  message: "Thanks for signing up for Piecewise!"
+  msg: doc._id     
+});
 ```
-
-```shell
-# With shell, you can just pass the correct header with each request
-curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-```
-
-> Make sure to replace `meowmeowmeow` with your API key.
-
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
-
-<aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
-</aside>
-
-# Kittens
-
-## Get All Kittens
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
-```
-
-```shell
-curl "http://example.com/api/kittens"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
-```
-
-> The above command returns JSON structured like this:
-
-```json
-[
-  {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
-  },
-  {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
-  }
-]
-```
-
-This endpoint retrieves all kittens.
 
 ### HTTP Request
+`POST '/user/signup/newuser'`
 
-`GET http://example.com/api/kittens`
+```
+On failure:
+
+({
+  status: 11000,
+  success: false,
+  msg: "There is already a user with this email."
+});
+```
+
+To create a new user, a POST request must be sent with the following parameters in its request body:
+
+### Query Parameters
+Parameter | Description
+--------- | -----------
+firstName | The first name of the user
+lastName | The surname name of the user
+email | The email of the user to sign up for a new account
+password | The password of the user to sign up for a new account
+mobileNumber | The mobile number to validate the user. 
+
+
+<aside class="notice">
+  Once the user submits these information, they will have to verify the information. A code is sent to their Mobile
+  Phone Number and if the code is valid, they are allowed to continue onboarding. 
+</aside>
+
+<aside class="success">
+Remember — successful verification returns the user id so we can continue onboarding the user. The user id is key 
+to verifying the user when the user submits the verification code. 
+</aside>
+
+## Verifying the user
+This is where we verify the user after they have signed up using their name, email, password and mobile phone number. 
+
+```
+On success:
+({
+  status: 200
+  success: true,
+  message: "Thanks for vaidating your account!"
+  msg: doc._id     
+});
+```
+
+### HTTP Request
+`POST '/user/signup/:id/verify'`
+
+```
+On failure, there are 3 options:
+1. We failed to find the user information in our database
+
+({
+  status: 500,
+  success: false,
+  msg: "User not found in database. Please try again."
+});
+
+2. The code was invalid
+
+({
+  status: 500,
+  success: true,
+  msg: "The code you entered was invalid - please try again."
+});
+
+3. We failed to validate the code due to connectivity issues. 
+
+({
+  status: 500,
+  success: false,
+  msg: "There were connection issues. Please try again later."
+});
+```
+
+To verify a user who is signing up, the POST request must have the following parameters in its request body:
+
+### Query Parameters
+Parameter | Description
+--------- | -----------
+code | the verification code itself
+id | the user id
+
+
+<aside class="success">
+Remember — successful verification returns the user id so we can continue onboarding the user. We use user id to query users and add new information.
+</aside>
+
+## Authenticating the user
+This is where we authenticate the user when the user is logging/signing in to their Piecewise account. 
+
+### HTTP Request
+`POST '/user/login/authenticate'`
+
+```
+On success:
+({
+  status: 200
+  success: true,
+  loggedInUser: "loggedInUser"
+  token: "JWT"+ token 
+});
+
+where 
+loggedInUser = {
+    _id:user._id,
+    email:user.email,
+    firstname:user.firstName,
+    lastname: user.lastName,
+    accesstoken: user.plaidAccessToken,
+    itemid: user.plaidItemID
+};
+
+```
+
+To authenticate a user who is signing/logging in, the POST request must have the following parameters in its request body:
+
+```
+On failure, there are 2 options:
+1. We failed to find the user information in our database
+
+({
+  status: 500,
+  success: false,
+  msg: "No user with that email was found."
+});
+
+2. The password was incorrect
+
+({
+  status: 500,
+  success: false,
+  msg: "You entered the password incorrectly."
+});
+
+```
+
+### Query Parameters
+Parameter | Description
+--------- | -----------
+email | the verification code itself
+password | the user id
+
+
+# Payments
+## Sending One Time Payment
+
+This is where we send one time payment on behalf of user to Greatlakes. 
+### HTTP Request
+`POST '/payments/greatlakes/onetime'`
 
 ### Query Parameters
 
-Parameter | Default | Description
---------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
+Parameter | Description
+--------- | -----------
+id | The id of the user sending the payment
+payment_amount | The payment amount being sent to Greatlakes.
 
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
+<aside class="warning">
+   The minimum payment_amount has to be $5 since GreatLakes only access $5 or more amounts.
 </aside>
 
-## Get a Specific Kitten
+## Sending Monthly Payments
 
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
-}
-```
-
-This endpoint retrieves a specific kitten.
-
-<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
-
+This is where we send the monthly payment due on behalf of user to GreatLakes. 
 ### HTTP Request
+`POST '/payments/greatlakes/monthly'`
 
-`GET http://example.com/kittens/<ID>`
-
-### URL Parameters
+### Query Parameters
 
 Parameter | Description
 --------- | -----------
-ID | The ID of the kitten to retrieve
+id | The id of the user sending the payment
 
-## Delete a Specific Kitten
+<aside class="notice">
+   We only need the id because our database stores the monthly payment due of each user. 
+</aside>
 
-```ruby
-require 'kittn'
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.delete(2)
-```
+# Loans
+## Onboarding GreatLakes Credentials
 
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2"
-  -X DELETE
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.delete(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "deleted" : ":("
-}
-```
-
-This endpoint retrieves a specific kitten.
-
+This is part of the onboarding process where we ask users for their Greatlakes Login credentials
+and we save the information in the database. 
 ### HTTP Request
+`POST '/loans/glcredentials'`
 
-`DELETE http://example.com/kittens/<ID>`
-
-### URL Parameters
+### Query Parameters
 
 Parameter | Description
 --------- | -----------
-ID | The ID of the kitten to delete
-
+id | The id of the user sending the payment
+loanProviderUsername | The username of the Greatlakes account
+loanProviderPIN | The 4 digit PIN of the Greatlakes account
+loanProviderPassword | The password of the Greatlakes account
