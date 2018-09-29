@@ -22,67 +22,23 @@ The API is divided into 3 parts as of now:
 Users at /user/ endpoint
 
 This is where we create, validate, verify, authenticate new and existing users and retrieve user related information. 
+The /user/ endpoint is entirely for Piecewise's internal use and won't be made public/ 
 
 Payments at /payments/ endpoint
 
-This is where we send all payment requests to GreatLakes Loan Provider. 
+This is where we process payment requests to loan servicers. We are currently integrated with Great Lakes, Nelnet and Navient
 
 Loans at /loans/ endpoint
 
 This is where we retrieve loan provider login credentials as well as loan balance information of a user. 
 
 
-# Users
-## Creating new users
-This is when a new user signs up for Piecewise. 
 
-```
-On success:
-({
-  status: 200
-  success: true,
-  message: "Thanks for signing up for Piecewise!"
-  msg: doc._id     
-});
-```
+# Payments
+## Sending One Time/Lump Sum Payment
 
-### HTTP Request
-`POST '/user/signup/newuser'`
-
-```
-On failure:
-
-({
-  status: 11000,
-  success: false,
-  msg: "There is already a user with this email."
-});
-```
-
-To create a new user, a POST request must be sent with the following parameters in its request body:
-
-### Query Parameters
-Parameter | Description
---------- | -----------
-firstName | The first name of the user
-lastName | The surname name of the user
-email | The email of the user to sign up for a new account
-password | The password of the user to sign up for a new account
-mobileNumber | The mobile number to validate the user. 
-
-
-<aside class="notice">
-  Once the user submits these information, they will have to verify the information. A code is sent to their Mobile
-  Phone Number and if the code is valid, they are allowed to continue onboarding. 
-</aside>
-
-<aside class="success">
-Remember — successful verification returns the user id so we can continue onboarding the user. The user id is key 
-to verifying the user when the user submits the verification code. 
-</aside>
-
-## Verifying the user
-This is where we verify the user after they have signed up using their name, email, password and mobile phone number. 
+If a user would like to send a one time/lump sum payment, the /payments/onetime endpoint is used. Based on the loan servicer
+of the user, the endpoint will vary slightly as shown below. 
 
 ```
 On success:
@@ -95,136 +51,102 @@ On success:
 ```
 
 ### HTTP Request
-`POST '/user/signup/:id/verify'`
+`Great Lakes POST '/payments/onetime/greatlakes'`
 
-```
-On failure, there are 3 options:
-1. We failed to find the user information in our database
+`Nelnet POST '/payments/onetime/nelnet'`
 
-({
-  status: 500,
-  success: false,
-  msg: "User not found in database. Please try again."
-});
-
-2. The code was invalid
-
-({
-  status: 500,
-  success: true,
-  msg: "The code you entered was invalid - please try again."
-});
-
-3. We failed to validate the code due to connectivity issues. 
-
-({
-  status: 500,
-  success: false,
-  msg: "There were connection issues. Please try again later."
-});
-```
-
-To verify a user who is signing up, the POST request must have the following parameters in its request body:
-
-### Query Parameters
-Parameter | Description
---------- | -----------
-code | the verification code itself
-id | the user id
-
-
-<aside class="success">
-Remember — successful verification returns the user id so we can continue onboarding the user. We use user id to query users and add new information.
-</aside>
-
-## Authenticating the user
-This is where we authenticate the user when the user is logging/signing in to their Piecewise account. 
-
-### HTTP Request
-`POST '/user/login/authenticate'`
-
-```
-On success:
-({
-  status: 200
-  success: true,
-  loggedInUser: "loggedInUser"
-  token: "JWT"+ token 
-});
-
-where 
-loggedInUser = {
-    _id:user._id,
-    email:user.email,
-    firstname:user.firstName,
-    lastname: user.lastName,
-    accesstoken: user.plaidAccessToken,
-    itemid: user.plaidItemID
-};
-
-```
-
-To authenticate a user who is signing/logging in, the POST request must have the following parameters in its request body:
-
-```
-On failure, there are 2 options:
-1. We failed to find the user information in our database
-
-({
-  status: 500,
-  success: false,
-  msg: "No user with that email was found."
-});
-
-2. The password was incorrect
-
-({
-  status: 500,
-  success: false,
-  msg: "You entered the password incorrectly."
-});
-
-```
-
-### Query Parameters
-Parameter | Description
---------- | -----------
-email | the verification code itself
-password | the user id
-
-
-# Payments
-## Sending One Time Payment
-
-This is where we send one time payment on behalf of user to Greatlakes. 
-### HTTP Request
-`POST '/payments/greatlakes/onetime'`
+`Navient POST '/payments/onetime/navient'`
 
 ### Query Parameters
 
 Parameter | Description
 --------- | -----------
-id | The id of the user sending the payment
-payment_amount | The payment amount being sent to Greatlakes.
+token | An encoded parameter to verify the user who is requesting the payment
+payment_amount | The payment amount being sent to the loan servicer.
 
 <aside class="warning">
-   The minimum payment_amount has to be $5 since GreatLakes only access $5 or more amounts.
+   The minimum payment_amount has to be $5 for the GreatLakes endpoint as Great Lakes only allow for $5 or more amounts.
+</aside>
+
+<aside class="warning">
+   The payment route for Great Lakes is rate limited to one payment every 3 days since that is the time period taken by Great Lakes
+   to process each payment request. 
 </aside>
 
 ## Sending Monthly Payments
 
-This is where we send the monthly payment due on behalf of user to GreatLakes. 
+The monthly payment route follows a similar convention to one time payment standard. 
+
 ### HTTP Request
-`POST '/payments/greatlakes/monthly'`
+`Great Lakes POST '/payments/monthly/greatlakes'`
+
+`Nelnet POST '/payments/monthly/nelnet'`
+
 
 ### Query Parameters
 
 Parameter | Description
 --------- | -----------
-id | The id of the user sending the payment
+token | An encoded parameter to verify the user who is requesting the payment
 
 <aside class="notice">
-   We only need the id because our database stores the monthly payment due of each user. 
+   We only need the token because our database stores the monthly payment due of each user. 
+</aside>
+
+<aside class="notice">
+   Monthly payment is not available for Nelnet at this moment. 
+</aside>
+
+
+## Sending Other types of Payments
+
+Piecewise API can send other forms of payments too- spare change round up payments, payments that are 
+a set percentage of all incoming deposits of users, set autopay amount payments etc. The key concept
+is that from a high level, all these payments are in essence a type of one time payment. Thats why we 
+use the '/payment/onetime/' endpoint for these kind of payments as well. 
+
+Here is a list of all the payment options, Piecewise API can handle:
+
+### Spare Change Round Ups
+
+For every purchase and/or debit transaction (in-person and online), the transaction is rounded up to
+the nearest dollar, and once the spare changes accumulate to $10 or more, we send a payment to the 
+user's loan servicer.
+
+
+### 1% of Every Incoming Deposits
+
+For every incoming wire transfer or incoming deposit in a user's checking account (could be bi-weekly
+wage, cash transfer, PayPal transfer etc), we calculate 1% of each deposit and every month, and send
+the accumulated amount to the user's respective loan servicer. 
+
+### Send $10 every week
+
+Self-explainatory- we send an automated $10 weekly payment to the user's respective loan servicer.
+
+### HTTP Request - Great Lakes
+`Great Lakes POST '/payments/onetime/sparechange/greatlakes'`
+`Great Lakes POST '/payments/onetime/ofdeposits/greatlakes'`
+`Great Lakes POST '/payments/onetime/recurring/weekly/greatlakes'`
+
+### HTTP Request - Nelnet
+`Nelnet POST '/payments/onetime/sparechange/nelnet'`
+`Nelnet POST '/payments/onetime/ofdeposits/nelnet'`
+`Nelnet POST '/payments/onetime/recurring/weekly/nelnet'`
+
+### HTTP Request -Navient
+`Navient POST '/payments/onetime/sparechange/navient'`
+`Navient POST '/payments/onetime/ofdeposits/navient'`
+`Navient POST '/payments/onetime/recurring/weekly/navient'`
+
+### Query Parameters
+
+Parameter | Description
+--------- | -----------
+token | An encoded parameter to verify the user who is requesting the payment
+
+<aside class="notice">
+   For all these payment types, we only need the token to ID the user making the payment. 
 </aside>
 
 
