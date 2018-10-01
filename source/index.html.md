@@ -261,20 +261,27 @@ Example response on success:
     "success": true,
     "status": 200,
     "Income":{
-        "Average_Income_Per_Month": 2828.21,
+        "Average_Income_Per_Month": 2328.21,
         "Is_Income_stable": false,
-        "Recurring_Income_Amount": 2700,
+        "Recurring_Income_Amount": 2200,
         "No_of_Months_User_Earned_More_Than_Avg_Income": 7,
         "No_Of_Months_User_Earned_Less_Than_Avg_Income"  11
     },
     "Debt_To_Income":{
-        "Avg_Monthly_Debt_to_Income_Ratio": 0.31,
-        "Avg_Yearly_Debt_to_Income_Ratio": 0.29   
+        "Avg_Monthly_Debt_to_Income_Ratio": 0.22,
+        "Avg_Yearly_Debt_to_Income_Ratio": 0.20,
+        "Debt_Burdern_Status": Manageable   
     }
 }
 ```
 
 This route returns information on how stable the income situation of a user is. 
+
+It returns information on the average income earned by the user every month and what the monthly debt to income ratio
+looks like for the user in question. It also returns information on debt burden status of the user- there are 3 possiblities here:
+1. Easy (Debt to Income Ratio Less than 0.15)
+2. Manageable (Debt to Income Ratio between 0.15-0.3)
+3. High (Debt to Income Ratio higher than 0.3)
 
 #### HTTP Request
 `GET '/loans/analysis/income'`
