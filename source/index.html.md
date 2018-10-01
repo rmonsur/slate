@@ -247,3 +247,41 @@ token | An encoded parameter to verify the user who is requesting the payment
 <aside class="notice">
    This route is rate limited to 1 request per day to avoid overloading Piecewise API. 
 </aside>
+
+## Getting analysis of user's financial health
+
+Piecewise performs meta analysis of a user's financial health by taking into account a user's bank and student loan
+balance information. This analysis is broken into two parts: income and student loan information. 
+
+### Income 
+
+```
+Example response on success:
+{
+    "success": true,
+    "status": 200,
+    "Income":{
+        "Average_Income_Per_Month": 2828.21,
+        "Is_Income_stable": false,
+        "Recurring_Income_Amount": 2700,
+        "No_of_Months_User_Earned_More_Than_Avg_Income": 7,
+        "No_Of_Months_User_Earned_Less_Than_Avg_Income"  11
+    },
+    "Debt_To_Income":{
+        "Avg_Monthly_Debt_to_Income_Ratio": 0.31,
+        "Avg_Yearly_Debt_to_Income_Ratio": 0.29   
+    }
+}
+```
+
+This route returns information on how stable the income situation of a user is. 
+
+#### HTTP Request
+`GET '/loans/analysis/income'`
+
+Parameter | Description
+--------- | -----------
+token | An encoded parameter to verify the user who is requesting the payment
+
+
+
