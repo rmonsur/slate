@@ -43,12 +43,12 @@ of the user, the endpoint will vary slightly as shown below.
 ```
 Example response on success:
 ({
-  status: 200
-  success: true,
-  message: "Thanks for sending a one time payment of $30.00",
-  payment_id: 5a394894ert67opo39r4d,
-  user_id: 5b4543a47c89d506836a230e,
-  servicer: Nelnet 
+  "status": 200
+  "success": true,
+  "message": "Thanks for sending a one time payment of $30.00",
+  "payment_id": 5a394894ert67opo39r4d,
+  "user_id": 5b4543a47c89d506836a230e,
+  "servicer": "Nelnet" 
 });
 ```
 
@@ -83,12 +83,12 @@ The monthly payment route follows a similar convention to one time payment stand
 ```
 Example response on success:
 ({
-  status: 200
-  success: true,
-  message: "We just sent your monthly payment of $305.19",
-  payment_id: 5c404124rsg6712u39r2q,
-  user_id: 5b4543a47c89d506836a230e,
-  servicer: Great Lakes 
+  "status": 200
+  "success": true,
+  "message": "We just sent your monthly payment of $305.19",
+  "payment_id": 5c404124rsg6712u39r2q,
+  "user_id": 5b4543a47c89d506836a230e,
+  "servicer": "Great Lakes" 
 });
 ```
 
@@ -131,12 +131,12 @@ user's loan servicer.
 ```
 Example response on success:
 ({
-  status: 200
-  success: true,
-  message: "We just sent $14.19 in spare changes to your loans!",
-  payment_id: 5c404124rsg6712u39r2q,
-  user_id: 5b4543a47c89d506836a230e,
-  servicer: Great Lakes 
+  "status": 200
+  "success": true,
+  "message": "We just sent $14.19 in spare changes to your loans!",
+  "payment_id": 5c404124rsg6712u39r2q,
+  "user_id": 5b4543a47c89d506836a230e,
+  "servicer": "Great Lakes" 
 });
 ```
 
@@ -194,6 +194,7 @@ Example response on success:
 {
     "success": true,
     "status": 200,
+    "user_id": 5b4543a47c89d506836a230e,
     "made_monthly_payment": false,
     "bankerror": false,
     "send_spare_change": {
@@ -217,8 +218,8 @@ Example response on success:
     "loan_balance":{
         "amount_paid_so_far": 14.19,
         "monthly_min": 295.39,
-        "amount_left": "281.20",
-        "servicer": Great Lakes,
+        "amount_left": 281.20,
+        "servicer": "Great Lakes",
         "autopay": false,
         "due_date": "September 25th, 2018"
   }
@@ -260,6 +261,7 @@ Example response on success:
 {
     "success": true,
     "status": 200,
+    "user_id": 5b4543a47c89d506836a230e,
     "Income":{
         "Average_Income_Per_Month": 2328.21,
         "Is_Income_stable": false,
@@ -270,7 +272,7 @@ Example response on success:
     "Debt_To_Income":{
         "Avg_Monthly_Debt_to_Income_Ratio": 0.22,
         "Avg_Yearly_Debt_to_Income_Ratio": 0.20,
-        "Debt_Burdern_Status": Manageable   
+        "Debt_Burdern_Status": "Manageable"   
     }
 }
 ```
@@ -278,7 +280,10 @@ Example response on success:
 This route returns information on how stable the income situation of a user is. 
 
 It returns information on the average income earned by the user every month and what the monthly debt to income ratio
-looks like for the user in question. It also returns information on debt burden status of the user- there are 3 possiblities here:
+looks like for the user in question. 
+
+It also returns information on debt burden status of the user- there are 3 possiblities here:
+
 1. Easy (Debt to Income Ratio Less than 0.15)
 2. Manageable (Debt to Income Ratio between 0.15-0.3)
 3. High (Debt to Income Ratio higher than 0.3)
@@ -290,5 +295,32 @@ Parameter | Description
 --------- | -----------
 token | An encoded parameter to verify the user who is requesting the payment
 
+### Loan Repayment History
 
+```
+Example response on success:
+{
+    "success": true,
+    "status": 200,
+    "user_id": 5b4543a47c89d506836a230e,
+    "Loans_History":{
+        "Missed_Loan_Payments_In_2_Years": true,
+        "No_Of_Payments_Missed": 2,
+        "Missed_Loan_Payments_In_6_Months": false,
+        "Made_Extra_Repayments_In_Last_6_months": true,
+        "Avg_Extra_Repayment_Amount": 23.21,
+        "Current_status": "Active_Repayment"
+    }
+}
+```
+
+This route returns meta information on if the user missed any monthly repayment and if the user made any extra repayment 
+towards their loans. 
+
+#### HTTP Request
+`GET '/loans/analysis/repayment'`
+
+Parameter | Description
+--------- | -----------
+token | An encoded parameter to verify the user who is requesting the payment
 
