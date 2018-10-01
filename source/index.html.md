@@ -41,12 +41,14 @@ If a user would like to send a one time/lump sum payment, the /payments/onetime 
 of the user, the endpoint will vary slightly as shown below. 
 
 ```
-On success:
+Example response on success:
 ({
   status: 200
   success: true,
-  message: "Thanks for vaidating your account!"
-  msg: doc._id     
+  message: "Thanks for sending a one time payment of $30.00",
+  payment_id: 5a394894ert67opo39r4d,
+  user_id: 5b4543a47c89d506836a230e,
+  servicer: Nelnet 
 });
 ```
 
@@ -56,6 +58,7 @@ On success:
 `Nelnet POST '/payments/onetime/nelnet'`
 
 `Navient POST '/payments/onetime/navient'`
+
 
 ### Query Parameters
 
@@ -76,6 +79,18 @@ payment_amount | The payment amount being sent to the loan servicer.
 ## Sending Monthly Payments
 
 The monthly payment route follows a similar convention to one time payment standard. 
+
+```
+Example response on success:
+({
+  status: 200
+  success: true,
+  message: "We just sent your monthly payment of $305.19",
+  payment_id: 5c404124rsg6712u39r2q,
+  user_id: 5b4543a47c89d506836a230e,
+  servicer: Great Lakes 
+});
+```
 
 ### HTTP Request
 `Great Lakes POST '/payments/monthly/greatlakes'`
@@ -113,6 +128,18 @@ For every purchase and/or debit transaction (in-person and online), the transact
 the nearest dollar, and once the spare changes accumulate to $10 or more, we send a payment to the 
 user's loan servicer.
 
+```
+Example response on success:
+({
+  status: 200
+  success: true,
+  message: "We just sent $14.19 in spare changes to your loans!",
+  payment_id: 5c404124rsg6712u39r2q,
+  user_id: 5b4543a47c89d506836a230e,
+  servicer: Great Lakes 
+});
+```
+
 
 ### 1% of Every Incoming Deposits
 
@@ -126,17 +153,25 @@ Self-explainatory- we send an automated $10 weekly payment to the user's respect
 
 ### HTTP Request - Great Lakes
 `Great Lakes POST '/payments/onetime/sparechange/greatlakes'`
+
 `Great Lakes POST '/payments/onetime/ofdeposits/greatlakes'`
+
 `Great Lakes POST '/payments/onetime/recurring/weekly/greatlakes'`
+
 
 ### HTTP Request - Nelnet
 `Nelnet POST '/payments/onetime/sparechange/nelnet'`
+
 `Nelnet POST '/payments/onetime/ofdeposits/nelnet'`
+
 `Nelnet POST '/payments/onetime/recurring/weekly/nelnet'`
+
 
 ### HTTP Request -Navient
 `Navient POST '/payments/onetime/sparechange/navient'`
+
 `Navient POST '/payments/onetime/ofdeposits/navient'`
+
 `Navient POST '/payments/onetime/recurring/weekly/navient'`
 
 ### Query Parameters
