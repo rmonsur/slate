@@ -186,18 +186,64 @@ token | An encoded parameter to verify the user who is requesting the payment
 
 
 # Loans
-## Onboarding GreatLakes Credentials
 
-This is part of the onboarding process where we ask users for their Greatlakes Login credentials
-and we save the information in the database. 
+## Getting a snapshot of a user's financial information
+
+```
+Example response on success:
+{
+    "success": true,
+    "status": 200,
+    "made_monthly_payment": false,
+    "bankerror": false,
+    "send_spare_change": {
+        "send_spare_change": true
+    },
+    "send_incoming_desposit": {
+        "send_incoming_desposit": false
+    },
+    "send_ten_dollars_per_week": {
+        "send_ten_dollars_per_week": false,
+    },
+    "bank_balance": {
+        "balances": {
+            "available": 264.52,
+            "current": 260.15
+        },
+        "mask": "4230",
+        "name": "5/3 ESSENTIAL CHECKING",
+        "official_name": "5/3 ESSENTIAL CHECKING"
+    },
+    "loan_balance":{
+        "amount_paid_so_far": 14.19,
+        "monthly_min": 295.39,
+        "amount_left": "281.20",
+        "servicer": Great Lakes,
+        "autopay": false,
+        "due_date": "September 25th, 2018"
+  }
+}
+```
+
+The `/loans/info` route information returns a summary of a user's financial and student loan balance 
+information. 
+
+The key information this route returns are as follows:
+
+1. User's Checking Account information
+2. User's student loan balance information
+3. User's choice of Payment Rules options selected via the Piecewise Mobile App
+
+
 ### HTTP Request
-`POST '/loans/glcredentials'`
+`GET '/loans/info'`
 
 ### Query Parameters
 
 Parameter | Description
 --------- | -----------
-id | The id of the user sending the payment
-loanProviderUsername | The username of the Greatlakes account
-loanProviderPIN | The 4 digit PIN of the Greatlakes account
-loanProviderPassword | The password of the Greatlakes account
+token | An encoded parameter to verify the user who is requesting the payment
+
+<aside class="notice">
+   This route is rate limited to 1 request per day to avoid overloading Piecewise API. 
+</aside>
